@@ -142,15 +142,18 @@
   }
   .stay textarea::placeholder { color: var(--muted); }
 
-  /* cost row on each stay */
-  .costrow { display: flex; align-items: center; gap: 7px; margin-top: 7px; font-size: 13px; }
+  /* labeled cost line-items on each stay */
+  .costs { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+  .costrow { display: flex; align-items: center; gap: 5px; font-size: 13px; }
   .costrow .cur { color: var(--muted); font-weight: 700; }
-  .costrow input.cost {
-    width: 92px; font: inherit; font-size: 13px; padding: 4px 7px;
-    border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink);
-  }
-  .costrow label.inc { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); cursor: pointer; margin-left: auto; }
-  .costrow.off input.cost { opacity: .45; text-decoration: line-through; }
+  .costrow input.clabel { flex: 1; min-width: 0; font: inherit; font-size: 12px; padding: 4px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink); }
+  .costrow input.cost { width: 66px; font: inherit; font-size: 13px; padding: 4px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink); text-align: right; }
+  .costrow label.inc { display: inline-flex; align-items: center; cursor: pointer; }
+  .costrow .crm { color: var(--muted); opacity: .5; font-weight: 700; cursor: pointer; padding: 0 3px; }
+  .costrow .crm:hover { opacity: 1; color: var(--ink); }
+  .costrow.off input.clabel, .costrow.off input.cost { opacity: .45; text-decoration: line-through; }
+  .addcost { font: inherit; font-size: 11px; font-weight: 600; padding: 3px 9px; border: 1px dashed var(--line); border-radius: 7px; background: transparent; color: var(--muted); cursor: pointer; align-self: flex-start; }
+  .addcost:hover { border-color: var(--muted); color: var(--ink); background: var(--card); }
 
   /* link preview cards */
   .chips { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
@@ -265,7 +268,7 @@
   const SB_URL = 'https://myffnovjpdnezazjxlhl.supabase.co';
   const SB_KEY = 'sb_publishable_bd8XYmhmv8mH83Hjx3oZiw_DArf5vk0';
   const CFG_K = '__config__';
-  const SEED_K = '__seeded_v2__';
+  const SEED_K = '__seeded_v3__';
   const BASE_END = '2026-10-18';   // the fork point: Asgard's planned fly-out
   // All costs are STORED in USD (the trek is quoted USD). Display converts to the chosen currency.
 
@@ -284,20 +287,20 @@
   };
 
   // seeded plans for Asgard's extra days (keyed per scenario). cost in USD.
-  // Costs in USD. Daily figures bundle a cheap bed + food + scooter unless noted.
+  // Costs in USD, as labeled line-items. Daily figures bundle a cheap bed + food + scooter unless noted.
   const SEED = {
     B: {
-      '2026-10-19': { text: 'Island lap — east to Tetebatu (rice terraces, waterfalls). Bed + food + scooter.', cost: 40 },
-      '2026-10-20': { text: 'Lap — north coast, Senggigi / Sira beach. Bed + food + scooter.', cost: 40 },
-      '2026-10-21': { text: 'Back south, last night + transfer to Denpasar.', cost: 55 }
+      '2026-10-19': { text: 'Island lap — east to Tetebatu (rice terraces, waterfalls).', costs: [{ label: 'Bed + food + scooter', usd: 40, on: true }] },
+      '2026-10-20': { text: 'Lap — north coast, Senggigi / Sira beach.', costs: [{ label: 'Bed + food + scooter', usd: 40, on: true }] },
+      '2026-10-21': { text: 'Back south, last night + transfer to Denpasar.', costs: [{ label: 'Bed + food + transfer', usd: 55, on: true }] }
     },
     C: {
-      '2026-10-19': { text: 'Rinjani Day 1 — Sembalun gate to crater rim camp (Rinjani Dawn, group). $325 USD covers guide, porters, food, camp + park fees for all 3 days.', cost: 325 },
-      '2026-10-20': { text: 'Rinjani Day 2 — summit 3726m, down to Segara Anak lake + hot springs (on the mountain).', cost: 0 },
-      '2026-10-21': { text: 'Rinjani Day 3 — descend to Senaru, bed + food off the mountain.', cost: 20 },
-      '2026-10-22': { text: 'Recover west coast — Senggigi. Bed + food + scooter.', cost: 45 },
-      '2026-10-23': { text: 'Gili islands / west coast (incl. boat). Bed + food.', cost: 55 },
-      '2026-10-24': { text: 'Back south, last night + transfer to Denpasar.', cost: 55 }
+      '2026-10-19': { text: 'Rinjani Day 1 — Sembalun gate to crater rim camp (Rinjani Dawn, group).', costs: [{ label: 'Rinjani trek (3D/2N, all-in)', usd: 325, on: true }] },
+      '2026-10-20': { text: 'Rinjani Day 2 — summit 3726m, down to Segara Anak lake + hot springs.', costs: [{ label: 'On the mountain (incl.)', usd: 0, on: true }] },
+      '2026-10-21': { text: 'Rinjani Day 3 — descend to Senaru.', costs: [{ label: 'Bed + food off mountain', usd: 20, on: true }] },
+      '2026-10-22': { text: 'Recover west coast — Senggigi.', costs: [{ label: 'Bed + food + scooter', usd: 45, on: true }] },
+      '2026-10-23': { text: 'Gili islands / west coast.', costs: [{ label: 'Bed + food + boat', usd: 55, on: true }] },
+      '2026-10-24': { text: 'Back south, last night + transfer to Denpasar.', costs: [{ label: 'Bed + food + transfer', usd: 55, on: true }] }
     }
   };
 
@@ -324,8 +327,10 @@
     const n = notes[key];
     if (typeof n.text !== 'string') n.text = '';
     if (!Array.isArray(n.links)) n.links = [];
-    if (typeof n.cost !== 'number') n.cost = (n.cost === 0 ? 0 : null);
-    if (typeof n.costOn !== 'boolean') n.costOn = true;
+    if (!Array.isArray(n.costs)) {
+      n.costs = [];
+      if (typeof n.cost === 'number') n.costs.push({ label: '', usd: n.cost, on: n.costOn !== false });
+    }
     return n;
   }
 
@@ -362,13 +367,18 @@
   const saveCfgRow = () => saveMeta(CFG_K, cfg);
 
   /* ---------- cost maths ---------- */
+  function nodeSum(n) {
+    let c = 0;
+    if (n) {
+      (n.costs || []).forEach(it => { if (it.on !== false && typeof it.usd === 'number') c += it.usd; });
+      (n.links || []).forEach(l => { if (l.costOn !== false && typeof l.cost === 'number') c += l.cost; });
+    }
+    return c;
+  }
   function tailCost(scen) {  // Asgard's extra-day cost for a scenario (days after BASE_END up to its end)
     let sum = 0;
     const end = parse(SCEN[scen].end);
-    for (let ts = parse(BASE_END) + DAY; ts <= end; ts += DAY) {
-      const n = notes['asgard|' + toISO(ts) + '#' + scen];
-      if (n && n.costOn && typeof n.cost === 'number') sum += n.cost;
-    }
+    for (let ts = parse(BASE_END) + DAY; ts <= end; ts += DAY) sum += nodeSum(notes['asgard|' + toISO(ts) + '#' + scen]);
     return sum;
   }
   function boardTotal() {  // everything currently included on the active board
@@ -377,11 +387,8 @@
     for (let ts = parse(cfg.asgard.start); ts <= axisEnd; ts += DAY) {
       ['asgard','asu'].forEach(who => {
         if (!present(ts, who)) return;
-        const n = notes[keyFor(who, toISO(ts))];
-        if (!n) return;
-        let c = (n.costOn && typeof n.cost === 'number') ? n.cost : 0;
-        (n.links || []).forEach(l => { if (l.costOn !== false && typeof l.cost === 'number') c += l.cost; });
-        if (who === 'asgard') asg += c; else asu += c;
+        const s = nodeSum(notes[keyFor(who, toISO(ts))]);
+        if (who === 'asgard') asg += s; else asu += s;
       });
     }
     return { asg, asu, total: asg + asu };
@@ -506,20 +513,32 @@
     ta.rows = 1; ta.placeholder = 'Where staying…'; ta.value = data.text || '';
     ta.addEventListener('input', () => { data.text = ta.value; autosize(ta); queueSaveCell(key); });
 
-    // cost row
-    const costrow = document.createElement('div'); costrow.className = 'costrow' + (data.costOn ? '' : ' off');
-    const cur = document.createElement('span'); cur.className = 'cur'; cur.textContent = symbol();
-    const cost = document.createElement('input'); cost.type = 'number'; cost.className = 'cost'; cost.placeholder = 'cost'; cost.min = '0';
-    cost.value = (typeof data.cost === 'number') ? Math.round(data.cost * rate()) : '';
-    cost.addEventListener('input', () => {
-      data.cost = cost.value === '' ? null : parseFloat(cost.value) / rate();
-      queueSaveCell(key); refreshTotals();
-    });
-    const inc = document.createElement('label'); inc.className = 'inc';
-    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = data.costOn;
-    cb.addEventListener('change', () => { data.costOn = cb.checked; costrow.classList.toggle('off', !cb.checked); saveCell(key); refreshTotals(); });
-    inc.appendChild(cb); inc.appendChild(document.createTextNode('count'));
-    costrow.appendChild(cur); costrow.appendChild(cost); costrow.appendChild(inc);
+    // labeled cost line-items
+    const costsBox = document.createElement('div'); costsBox.className = 'costs';
+    function drawCosts() {
+      costsBox.innerHTML = '';
+      data.costs.forEach((it, i) => {
+        const row = document.createElement('div'); row.className = 'costrow' + (it.on === false ? ' off' : '');
+        const lab = document.createElement('input'); lab.className = 'clabel'; lab.placeholder = 'label (e.g. Food)'; lab.value = it.label || '';
+        lab.addEventListener('input', () => { it.label = lab.value; queueSaveCell(key); });
+        const cur = document.createElement('span'); cur.className = 'cur'; cur.textContent = symbol();
+        const amt = document.createElement('input'); amt.type = 'number'; amt.className = 'cost'; amt.min = '0'; amt.placeholder = '0';
+        amt.value = (typeof it.usd === 'number') ? Math.round(it.usd * rate()) : '';
+        amt.addEventListener('input', () => { it.usd = amt.value === '' ? 0 : parseFloat(amt.value) / rate(); queueSaveCell(key); refreshTotals(); });
+        const incl = document.createElement('label'); incl.className = 'inc'; incl.title = 'count in total';
+        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = it.on !== false;
+        cb.addEventListener('change', () => { it.on = cb.checked; row.classList.toggle('off', !cb.checked); saveCell(key); refreshTotals(); });
+        incl.appendChild(cb);
+        const rm = document.createElement('span'); rm.className = 'crm'; rm.textContent = '×'; rm.title = 'remove';
+        rm.addEventListener('click', () => { data.costs.splice(i, 1); saveCell(key); drawCosts(); refreshTotals(); });
+        row.appendChild(lab); row.appendChild(cur); row.appendChild(amt); row.appendChild(incl); row.appendChild(rm);
+        costsBox.appendChild(row);
+      });
+      const addc = document.createElement('button'); addc.className = 'addcost'; addc.textContent = '+ cost';
+      addc.addEventListener('click', () => { data.costs.push({ label: '', usd: 0, on: true }); saveCell(key); drawCosts(); });
+      costsBox.appendChild(addc);
+    }
+    drawCosts();
 
     const chips = document.createElement('div'); chips.className = 'chips';
     function drawLinks() {
@@ -571,9 +590,9 @@
     url.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addLink(); } });
     addrow.appendChild(sel); addrow.appendChild(url); addrow.appendChild(lc); addrow.appendChild(add);
 
-    stay.appendChild(label); stay.appendChild(ta); stay.appendChild(costrow); stay.appendChild(chips); stay.appendChild(addrow);
+    stay.appendChild(label); stay.appendChild(ta); stay.appendChild(costsBox); stay.appendChild(chips); stay.appendChild(addrow);
     t.appendChild(line); t.appendChild(dot); t.appendChild(stay);
-    cells[key] = { ta, drawLinks, costInput: cost, costCb: cb, costrow };
+    cells[key] = { ta, drawLinks, drawCosts, costsBox };
     setTimeout(() => autosize(ta), 0);
     return t;
   }
@@ -635,7 +654,7 @@
         if (!text && !links.length) continue;
         count++;
         let desc = links.map(l => (CATS[l.cat] ? CATS[l.cat].label : 'Link') + ': ' + l.url).join('\n');
-        if (typeof d.cost === 'number' && d.cost > 0) desc = (desc ? desc + '\n' : '') + 'Cost: ' + money(d.cost);
+        (d.costs || []).forEach(it => { if (it.on !== false && typeof it.usd === 'number' && it.usd > 0) desc = (desc ? desc + '\n' : '') + (it.label || 'Cost') + ': ' + money(it.usd); });
         lines.push('BEGIN:VEVENT');
         lines.push('UID:' + who + '-' + stamp(ts) + '-' + cfg.scenario + '@asgard-asu-trip');
         lines.push('DTSTAMP:' + stamp(s) + 'T000000Z');
@@ -678,13 +697,13 @@
   function setLive(on, text) { const el = document.getElementById('live'); el.classList.toggle('on', !!on); document.getElementById('live-text').textContent = text; }
   function applyRemote(k, v) {
     const cur = entry(k);
-    cur.text = (v && v.text) || ''; cur.links = Array.isArray(v && v.links) ? v.links : [];
-    cur.cost = (v && typeof v.cost === 'number') ? v.cost : null; cur.costOn = !(v && v.costOn === false);
+    cur.text = (v && v.text) || '';
+    cur.links = Array.isArray(v && v.links) ? v.links : [];
+    cur.costs = Array.isArray(v && v.costs) ? v.costs : (typeof (v && v.cost) === 'number' ? [{ label: '', usd: v.cost, on: v.costOn !== false }] : []);
     const cell = cells[k];
     if (cell) {
       if (document.activeElement !== cell.ta) { cell.ta.value = cur.text; autosize(cell.ta); }
-      if (document.activeElement !== cell.costInput) { cell.costInput.value = (typeof cur.cost === 'number') ? Math.round(cur.cost * rate()) : ''; }
-      cell.costCb.checked = cur.costOn; cell.costrow.classList.toggle('off', !cur.costOn);
+      if (!cell.costsBox.contains(document.activeElement)) cell.drawCosts();
       cell.drawLinks();
     }
     refreshTotals();
@@ -711,7 +730,7 @@
       ['B','C'].forEach(scen => {
         Object.keys(SEED[scen]).forEach(iso => {
           const k = 'asgard|' + iso + '#' + scen;
-          if (!notes[k]) { notes[k] = { text: SEED[scen][iso].text, cost: SEED[scen][iso].cost, costOn: true, links: [] }; saveCell(k); }
+          if (!notes[k]) { notes[k] = { text: SEED[scen][iso].text, costs: JSON.parse(JSON.stringify(SEED[scen][iso].costs)), links: [] }; saveCell(k); }
         });
       });
       saveMeta(SEED_K, { at: new Date().toISOString() });
