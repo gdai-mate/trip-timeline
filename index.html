@@ -100,6 +100,9 @@
   .timeline { display: flex; flex-direction: column; }
   .row { display: grid; grid-template-columns: 1fr 120px 1fr; align-items: stretch; min-height: 92px; }
   .row.together .daybox { background: var(--together-soft); border-color: var(--together-edge); }
+  .splitrow { display: flex; align-items: center; gap: 12px; margin: 16px 6px 6px; }
+  .splitrow::before, .splitrow::after { content: ''; flex: 1; height: 1px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px); }
+  .splitrow span { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); white-space: nowrap; }
 
   .daybox {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -175,6 +178,8 @@
   .linkcard .ldom { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .linkcard .lcost { font-weight: 800; color: var(--ink); cursor: pointer; }
   .linkcard .lcost.off { opacity: .4; text-decoration: line-through; }
+  .linkcard .setphoto { color: var(--asgard); font-weight: 600; cursor: pointer; }
+  .linkcard .setphoto:hover { text-decoration: underline; }
   .linkcard .x {
     position: absolute; top: 7px; right: 8px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
     font-size: 15px; font-weight: 700; color: #fff; background: rgba(20,18,16,.6); border-radius: 50%; cursor: pointer;
@@ -448,12 +453,20 @@
     const axisEnd   = Math.max(parse(cfg.asgard.end),   parse(cfg.asu.end));
     const tl = document.getElementById('timeline');
     tl.innerHTML = '';
-    let togetherDays = 0;
+    let togetherDays = 0, splitShown = false;
     for (let ts = axisStart; ts <= axisEnd; ts += DAY) {
       const d = new Date(ts);
       const aG = present(ts, 'asgard'), aS = present(ts, 'asu');
-      const together = aG && aS;
+      // together only through the shared leg; once Asgard's solo trip begins they're apart
+      const together = aG && aS && ts <= parse(BASE_END);
       if (together) togetherDays++;
+      // divider the day they go separate ways
+      if (!splitShown && ts > parse(BASE_END)) {
+        const split = document.createElement('div'); split.className = 'splitrow';
+        split.innerHTML = '<span>You go your separate ways</span>';
+        tl.appendChild(split);
+        splitShown = true;
+      }
       const row = document.createElement('div');
       row.className = 'row' + (together ? ' together' : '');
       row.appendChild(track('asgard', 'left', ts, aG));
@@ -566,6 +579,16 @@
           lc.addEventListener('click', (e) => { e.preventDefault(); lnk.costOn = !(lnk.costOn !== false); saveCell(key); drawLinks(); refreshTotals(); });
           dom.appendChild(lc);
         }
+        const ph = document.createElement('span'); ph.className = 'setphoto'; ph.textContent = lnk.image ? 'change photo' : 'add photo';
+        ph.addEventListener('click', (e) => {
+          e.preventDefault();
+          const u = prompt('Paste an image URL for this card.\nTip: on the listing, right-click the photo and choose "Copy image address".', lnk.image || '');
+          if (u === null) return;
+          const v = u.trim();
+          if (v) { lnk.image = v; lnk.imgManual = true; lnk.noImg = false; } else { lnk.image = undefined; lnk.imgManual = false; }
+          lnk.fetched = true; saveCell(key); drawLinks();
+        });
+        dom.appendChild(ph);
         const body = document.createElement('div'); body.className = 'body';
         body.appendChild(title); body.appendChild(dom);
 
