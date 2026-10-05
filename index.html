@@ -71,6 +71,11 @@
   .scen .meta { font-size: 12px; color: var(--muted); }
   .scen .cost { font-size: 15px; font-weight: 800; margin-top: 2px; }
   .scen-note { text-align: center; font-size: 12px; color: var(--muted); margin: 2px 0 14px; }
+  .curbar { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0 2px; flex-wrap: wrap; }
+  .curbtn { padding: 5px 13px; font-size: 12px; font-weight: 700; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; }
+  .curbtn.active { background: var(--asgard); color: #fff; border-color: var(--asgard); }
+  .fxlbl { font-size: 12px; color: var(--muted); }
+  .curbar input.fx { width: 64px; font: inherit; font-size: 12px; padding: 4px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink); text-align: center; }
 
   .topbar {
     position: sticky; top: 0; z-index: 20;
@@ -208,7 +213,7 @@
   }
   @media print {
     body { background: #fff; padding: 0; }
-    .controls, .tools, .addrow, .linkcard .x, .live, .scenarios, .print-hide { display: none !important; }
+    .controls, .tools, .addrow, .linkcard .x, .live, .scenarios, .curbar, .print-hide { display: none !important; }
     .daybox, .stay { box-shadow: none; }
   }
 </style>
@@ -238,7 +243,8 @@
   </div>
 
   <div class="scenarios" id="scenarios"></div>
-  <div class="scen-note">Asgard's return option. Costs in USD (the Rinjani trek is quoted in USD). Flip options to weigh them up.</div>
+  <div class="curbar" id="curbar"></div>
+  <div class="scen-note">Asgard's return option. Daily costs bundle a cheap bed, food and a scooter. The trek is $325 USD. Flip options to weigh them up.</div>
 
   <div class="topbar">
     <div class="who-tag asgard left"><span class="mark round"></span>Asgard</div>
@@ -259,9 +265,9 @@
   const SB_URL = 'https://myffnovjpdnezazjxlhl.supabase.co';
   const SB_KEY = 'sb_publishable_bd8XYmhmv8mH83Hjx3oZiw_DArf5vk0';
   const CFG_K = '__config__';
-  const SEED_K = '__seeded_v1__';
-  const CUR = '$';
+  const SEED_K = '__seeded_v2__';
   const BASE_END = '2026-10-18';   // the fork point: Asgard's planned fly-out
+  // All costs are STORED in USD (the trek is quoted USD). Display converts to the chosen currency.
 
   const SCEN = {
     A: { name: 'Leave as planned', meta: 'Fly out Oct 18', end: '2026-10-18' },
@@ -272,23 +278,26 @@
   const defaults = {
     asgard: { start: '2026-10-10', end: '2026-10-18' },
     asu:    { start: '2026-10-10', end: '2026-10-26' },
-    scenario: 'A'
+    scenario: 'A',
+    currency: 'AUD',
+    fx: 1.52           // 1 USD = x AUD (editable in the UI)
   };
 
   // seeded plans for Asgard's extra days (keyed per scenario). cost in USD.
+  // Costs in USD. Daily figures bundle a cheap bed + food + scooter unless noted.
   const SEED = {
     B: {
-      '2026-10-19': { text: 'Island lap — east to Tetebatu (rice terraces, waterfalls)', cost: 45 },
-      '2026-10-20': { text: 'Lap — north coast, Senggigi / Sira beach', cost: 55 },
-      '2026-10-21': { text: 'Back south, fly out via Denpasar', cost: 60 }
+      '2026-10-19': { text: 'Island lap — east to Tetebatu (rice terraces, waterfalls). Bed + food + scooter.', cost: 40 },
+      '2026-10-20': { text: 'Lap — north coast, Senggigi / Sira beach. Bed + food + scooter.', cost: 40 },
+      '2026-10-21': { text: 'Back south, last night + transfer to Denpasar.', cost: 55 }
     },
     C: {
-      '2026-10-19': { text: 'Rinjani Day 1 — Sembalun gate up to crater rim camp (Rinjani Dawn, group). $325 covers all 3 days.', cost: 325 },
-      '2026-10-20': { text: 'Rinjani Day 2 — summit 3726m, down to Segara Anak lake + hot springs', cost: 0 },
-      '2026-10-21': { text: 'Rinjani Day 3 — descend to Senaru, collect luggage', cost: 0 },
-      '2026-10-22': { text: 'Recover on the west coast — Senggigi', cost: 50 },
-      '2026-10-23': { text: 'Gili islands / west coast', cost: 55 },
-      '2026-10-24': { text: 'Back south, fly out via Denpasar', cost: 60 }
+      '2026-10-19': { text: 'Rinjani Day 1 — Sembalun gate to crater rim camp (Rinjani Dawn, group). $325 USD covers guide, porters, food, camp + park fees for all 3 days.', cost: 325 },
+      '2026-10-20': { text: 'Rinjani Day 2 — summit 3726m, down to Segara Anak lake + hot springs (on the mountain).', cost: 0 },
+      '2026-10-21': { text: 'Rinjani Day 3 — descend to Senaru, bed + food off the mountain.', cost: 20 },
+      '2026-10-22': { text: 'Recover west coast — Senggigi. Bed + food + scooter.', cost: 45 },
+      '2026-10-23': { text: 'Gili islands / west coast (incl. boat). Bed + food.', cost: 55 },
+      '2026-10-24': { text: 'Back south, last night + transfer to Denpasar.', cost: 55 }
     }
   };
 
@@ -333,7 +342,9 @@
     if (who === 'asgard' && parse(iso) > parse(BASE_END)) return 'asgard|' + iso + '#' + (scen || cfg.scenario);
     return who + '|' + iso;
   }
-  function money(n) { return CUR + (Math.round(n * 100) / 100).toLocaleString('en-US'); }
+  function rate() { return cfg.currency === 'USD' ? 1 : (cfg.fx || 1.52); }
+  function symbol() { return cfg.currency === 'USD' ? 'US$' : 'A$'; }
+  function money(baseUsd) { return symbol() + Math.round((baseUsd || 0) * rate()).toLocaleString('en-US'); }
 
   /* ---------- persistence ---------- */
   const timers = {};
@@ -395,6 +406,21 @@
     });
   }
 
+  function renderCurbar() {
+    const box = document.getElementById('curbar');
+    box.innerHTML = '';
+    ['AUD','USD'].forEach(c => {
+      const b = document.createElement('button'); b.className = 'curbtn' + (cfg.currency === c ? ' active' : ''); b.textContent = c;
+      b.addEventListener('click', () => { cfg.currency = c; saveCfgRow(); render(); });
+      box.appendChild(b);
+    });
+    const lbl = document.createElement('span'); lbl.className = 'fxlbl'; lbl.textContent = '1 USD =';
+    const r = document.createElement('input'); r.type = 'number'; r.step = '0.01'; r.className = 'fx'; r.value = cfg.fx || 1.52;
+    r.addEventListener('change', () => { cfg.fx = parseFloat(r.value) || 1.52; saveCfgRow(); render(); });
+    const aud = document.createElement('span'); aud.className = 'fxlbl'; aud.textContent = 'AUD';
+    box.appendChild(lbl); box.appendChild(r); box.appendChild(aud);
+  }
+
   function setScenario(s) {
     cfg.scenario = s;
     cfg.asgard.end = SCEN[s].end;
@@ -404,6 +430,7 @@
   function render() {
     Object.keys(cells).forEach(k => delete cells[k]);
     renderScenarios();
+    renderCurbar();
     const axisStart = Math.min(parse(cfg.asgard.start), parse(cfg.asu.start));
     const axisEnd   = Math.max(parse(cfg.asgard.end),   parse(cfg.asu.end));
     const tl = document.getElementById('timeline');
@@ -481,11 +508,11 @@
 
     // cost row
     const costrow = document.createElement('div'); costrow.className = 'costrow' + (data.costOn ? '' : ' off');
-    const cur = document.createElement('span'); cur.className = 'cur'; cur.textContent = CUR;
+    const cur = document.createElement('span'); cur.className = 'cur'; cur.textContent = symbol();
     const cost = document.createElement('input'); cost.type = 'number'; cost.className = 'cost'; cost.placeholder = 'cost'; cost.min = '0';
-    cost.value = (typeof data.cost === 'number') ? data.cost : '';
+    cost.value = (typeof data.cost === 'number') ? Math.round(data.cost * rate()) : '';
     cost.addEventListener('input', () => {
-      data.cost = cost.value === '' ? null : parseFloat(cost.value);
+      data.cost = cost.value === '' ? null : parseFloat(cost.value) / rate();
       queueSaveCell(key); refreshTotals();
     });
     const inc = document.createElement('label'); inc.className = 'inc';
@@ -531,13 +558,13 @@
     const sel = document.createElement('select');
     Object.keys(CATS).forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = CATS[k].label; sel.appendChild(o); });
     const url = document.createElement('input'); url.type = 'url'; url.className = 'url'; url.placeholder = 'paste a link…';
-    const lc = document.createElement('input'); lc.type = 'number'; lc.className = 'lc'; lc.placeholder = '$'; lc.min = '0';
+    const lc = document.createElement('input'); lc.type = 'number'; lc.className = 'lc'; lc.placeholder = symbol(); lc.min = '0';
     const add = document.createElement('button'); add.className = 'add'; add.textContent = 'Add';
     function addLink() {
       let v = url.value.trim(); if (!v) return;
       if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
       const obj = { cat: sel.value, url: v, fetched: false };
-      if (lc.value !== '') { obj.cost = parseFloat(lc.value); obj.costOn = true; }
+      if (lc.value !== '') { obj.cost = parseFloat(lc.value) / rate(); obj.costOn = true; }
       data.links.push(obj); saveCell(key); drawLinks(); refreshTotals(); url.value = ''; lc.value = '';
     }
     add.addEventListener('click', addLink);
@@ -656,7 +683,7 @@
     const cell = cells[k];
     if (cell) {
       if (document.activeElement !== cell.ta) { cell.ta.value = cur.text; autosize(cell.ta); }
-      if (document.activeElement !== cell.costInput) { cell.costInput.value = (typeof cur.cost === 'number') ? cur.cost : ''; }
+      if (document.activeElement !== cell.costInput) { cell.costInput.value = (typeof cur.cost === 'number') ? Math.round(cur.cost * rate()) : ''; }
       cell.costCb.checked = cur.costOn; cell.costrow.classList.toggle('off', !cur.costOn);
       cell.drawLinks();
     }
