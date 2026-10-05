@@ -112,10 +112,14 @@
   .daybox .dow { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
   .daybox .dnum { font-size: 23px; font-weight: 800; line-height: 1.05; }
   .daybox .mon { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
-  .together-tag {
-    margin-top: 6px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
-    color: #fff; background: var(--together); padding: 2px 7px; border-radius: 20px;
+  .togtoggle {
+    margin-top: 6px; display: inline-flex; align-items: center; gap: 4px;
+    font-size: 9px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase;
+    color: var(--muted); cursor: pointer; user-select: none;
   }
+  .togtoggle.on { color: #fff; background: var(--together); padding: 2px 8px; border-radius: 20px; }
+  .togtoggle input { width: 11px; height: 11px; margin: 0; accent-color: var(--together); cursor: pointer; }
+  .togtoggle.on input { accent-color: #fff; }
 
   .track { position: relative; display: flex; align-items: center; padding: 6px 14px; }
   .track.left { justify-content: flex-end; } .track.right { justify-content: flex-start; }
@@ -294,7 +298,8 @@
     asu:    { start: '2026-10-10', end: '2026-10-26' },
     scenario: 'A',
     currency: 'AUD',
-    fx: 1.52           // 1 USD = x AUD (editable in the UI)
+    fx: 1.52,          // 1 USD = x AUD (editable in the UI)
+    together: {}       // per-day override: iso -> true/false (defaults to on through the shared leg)
   };
 
   // seeded plans for Asgard's extra days (keyed per scenario). cost in USD.
@@ -453,20 +458,17 @@
     const axisEnd   = Math.max(parse(cfg.asgard.end),   parse(cfg.asu.end));
     const tl = document.getElementById('timeline');
     tl.innerHTML = '';
-    let togetherDays = 0, splitShown = false;
+    let togetherDays = 0;
+    const baseEndTs = parse(BASE_END);
     for (let ts = axisStart; ts <= axisEnd; ts += DAY) {
       const d = new Date(ts);
+      const iso = toISO(ts);
       const aG = present(ts, 'asgard'), aS = present(ts, 'asu');
-      // together only through the shared leg; once Asgard's solo trip begins they're apart
-      const together = aG && aS && ts <= parse(BASE_END);
+      const bothPresent = aG && aS;
+      // together defaults on through the shared leg, off after; a per-day tick overrides it
+      const ov = cfg.together ? cfg.together[iso] : undefined;
+      const together = bothPresent && (ov === undefined ? ts <= baseEndTs : !!ov);
       if (together) togetherDays++;
-      // divider the day they go separate ways
-      if (!splitShown && ts > parse(BASE_END)) {
-        const split = document.createElement('div'); split.className = 'splitrow';
-        split.innerHTML = '<span>You go your separate ways</span>';
-        tl.appendChild(split);
-        splitShown = true;
-      }
       const row = document.createElement('div');
       row.className = 'row' + (together ? ' together' : '');
       row.appendChild(track('asgard', 'left', ts, aG));
@@ -474,8 +476,15 @@
       day.className = 'daybox';
       day.innerHTML = '<span class="dow">' + DOW[d.getUTCDay()] + '</span>' +
         '<span class="dnum">' + d.getUTCDate() + '</span>' +
-        '<span class="mon">' + MON[d.getUTCMonth()] + '</span>' +
-        (together ? '<span class="together-tag">together</span>' : '');
+        '<span class="mon">' + MON[d.getUTCMonth()] + '</span>';
+      if (bothPresent) {
+        const tog = document.createElement('label'); tog.className = 'togtoggle' + (together ? ' on' : '');
+        const cbt = document.createElement('input'); cbt.type = 'checkbox'; cbt.checked = together;
+        cbt.addEventListener('change', () => { if (!cfg.together) cfg.together = {}; cfg.together[iso] = cbt.checked; saveCfgRow(); render(); });
+        const lb = document.createElement('span'); lb.textContent = 'together';
+        tog.appendChild(cbt); tog.appendChild(lb);
+        day.appendChild(tog);
+      }
       row.appendChild(day);
       row.appendChild(track('asu', 'right', ts, aS));
       tl.appendChild(row);
