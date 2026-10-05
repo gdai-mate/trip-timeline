@@ -11,12 +11,9 @@
     --ink: #1e1c19;
     --muted: #78736a;
     --line: #e6e0d5;
-    /* people — blue vs orange = safest pair across all colour-blindness types,
-       and dot SHAPE (round vs diamond) carries it even without colour */
     --asgard: #0072b2;    --asgard-soft: #d8ecf8;
     --asu: #d55e00;       --asu-soft: #fbe3d2;
     --together: #8a6500;  --together-soft: #fff1c9;  --together-edge: #e5c879;
-    /* categories — each also has a distinct icon + word label */
     --stay: #7a4f9c;      --stay-soft: #ece2f4;
     --surf: #008ba3;      --surf-soft: #d5edf1;
     --food: #c26a00;      --food-soft: #f9e7d1;
@@ -25,11 +22,9 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    background: var(--paper);
-    color: var(--ink);
+    background: var(--paper); color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    padding: 32px 20px 90px;
+    line-height: 1.5; padding: 32px 20px 90px;
   }
   .wrap { max-width: 900px; margin: 0 auto; }
 
@@ -62,29 +57,38 @@
   button.primary { background: var(--asgard); color: #fff; border-color: var(--asgard); }
   button.primary:hover { filter: brightness(.95); background: var(--asgard); }
 
+  /* scenario switcher */
+  .scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 8px; }
+  .scen {
+    text-align: left; border: 1.5px solid var(--line); border-radius: 13px; background: var(--card);
+    padding: 12px 14px; cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .scen:hover { border-color: var(--asgard); }
+  .scen.active { border-color: var(--asgard); background: var(--asgard-soft); box-shadow: 0 2px 10px rgba(0,114,178,.12); }
+  .scen .tag { font-size: 11px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--asgard); }
+  .scen .name { font-size: 14px; font-weight: 700; }
+  .scen .meta { font-size: 12px; color: var(--muted); }
+  .scen .cost { font-size: 15px; font-weight: 800; margin-top: 2px; }
+  .scen-note { text-align: center; font-size: 12px; color: var(--muted); margin: 2px 0 14px; }
+
   .topbar {
     position: sticky; top: 0; z-index: 20;
-    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-    gap: 10px; margin: 8px 0 20px; padding: 11px 16px;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
+    margin: 8px 0 20px; padding: 11px 16px;
     background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
-    border: 1px solid var(--line); border-radius: 13px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 2px 10px rgba(0,0,0,.04);
   }
   .who-tag { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
-  .who-tag.left { justify-self: start; }
-  .who-tag.right { justify-self: end; }
-  .who-tag.asgard { color: var(--asgard); }
-  .who-tag.asu { color: var(--asu); }
+  .who-tag.left { justify-self: start; } .who-tag.right { justify-self: end; }
+  .who-tag.asgard { color: var(--asgard); } .who-tag.asu { color: var(--asu); }
   .mark { width: 15px; height: 15px; flex: none; }
   .mark.round { border-radius: 50%; background: var(--asgard); }
   .mark.diamond { background: var(--asu); transform: rotate(45deg); border-radius: 2px; }
-  .summary { text-align: center; font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+  .summary { text-align: center; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
   .summary b { color: var(--together); font-weight: 700; }
-
-  .live {
-    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted);
-    margin-top: 2px;
-  }
+  .summary .total { color: var(--ink); font-weight: 800; font-size: 14px; }
+  .live { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
   .live .dot { width: 8px; height: 8px; border-radius: 50%; background: #c9c3b7; }
   .live.on .dot { background: var(--adv); box-shadow: 0 0 0 3px rgba(26,138,75,.15); }
 
@@ -106,72 +110,66 @@
   }
 
   .track { position: relative; display: flex; align-items: center; padding: 6px 14px; }
-  .track.left { justify-content: flex-end; }
-  .track.right { justify-content: flex-start; }
-
+  .track.left { justify-content: flex-end; } .track.right { justify-content: flex-start; }
   .track .line { position: absolute; top: 0; bottom: 0; width: 3px; border-radius: 2px; }
-  .track.left .line  { right: 24px; }
-  .track.right .line { left: 24px; }
-  .track.asgard .line { background: var(--asgard); }
-  .track.asu .line    { background: var(--asu); }
-  .track.start .line { top: 50%; }
-  .track.end .line   { bottom: 50%; }
-  .track.solo .line  { display: none; }
-
+  .track.left .line  { right: 24px; } .track.right .line { left: 24px; }
+  .track.asgard .line { background: var(--asgard); } .track.asu .line { background: var(--asu); }
+  .track.start .line { top: 50%; } .track.end .line { bottom: 50%; } .track.solo .line { display: none; }
   .track .dot {
     position: absolute; top: 50%; transform: translateY(-50%);
     width: 17px; height: 17px; border: 3px solid var(--card); z-index: 2;
   }
-  .track.left .dot  { right: 17px; }
-  .track.right .dot { left: 17px; }
-  /* Asgard = round, Asu = diamond — shape tells you who even with no colour */
+  .track.left .dot  { right: 17px; } .track.right .dot { left: 17px; }
   .track.asgard .dot { background: var(--asgard); box-shadow: 0 0 0 1.5px var(--asgard); border-radius: 50%; }
-  .track.asu .dot    { background: var(--asu);    box-shadow: 0 0 0 1.5px var(--asu); border-radius: 3px; transform: translateY(-50%) rotate(45deg); }
+  .track.asu .dot    { background: var(--asu); box-shadow: 0 0 0 1.5px var(--asu); border-radius: 3px; transform: translateY(-50%) rotate(45deg); }
 
   .stay { width: 100%; max-width: 320px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
   .track.asgard .stay { border-left: 3px solid var(--asgard); }
   .track.asu .stay    { border-right: 3px solid var(--asu); }
-  .track.left .stay  { margin-right: 40px; }
-  .track.right .stay { margin-left: 40px; }
-  .stay .nite { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
-  .track.asgard .stay .nite { color: var(--asgard); }
-  .track.asu .stay .nite { color: var(--asu); }
+  .track.left .stay  { margin-right: 40px; } .track.right .stay { margin-left: 40px; }
+  .stay .nite { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .mirror { font: inherit; font-size: 10px; font-weight: 700; text-transform: none; letter-spacing: 0; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .mirror:hover { border-color: var(--muted); color: var(--ink); }
+  .track.asgard .stay .nite { color: var(--asgard); } .track.asu .stay .nite { color: var(--asu); }
   .stay textarea {
     width: 100%; border: none; resize: none; background: transparent; font: inherit; font-size: 14px;
     color: var(--ink); outline: none; overflow: hidden; min-height: 20px;
   }
   .stay textarea::placeholder { color: var(--muted); }
 
+  /* cost row on each stay */
+  .costrow { display: flex; align-items: center; gap: 7px; margin-top: 7px; font-size: 13px; }
+  .costrow .cur { color: var(--muted); font-weight: 700; }
+  .costrow input.cost {
+    width: 92px; font: inherit; font-size: 13px; padding: 4px 7px;
+    border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink);
+  }
+  .costrow label.inc { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); cursor: pointer; margin-left: auto; }
+  .costrow.off input.cost { opacity: .45; text-decoration: line-through; }
+
   /* link preview cards */
   .chips { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
   .linkcard {
-    display: flex; align-items: stretch; gap: 0; text-decoration: none; color: var(--ink);
+    display: flex; align-items: stretch; text-decoration: none; color: var(--ink);
     border: 1px solid var(--line); border-radius: 9px; overflow: hidden; position: relative;
     background: var(--card); transition: border-color .15s, box-shadow .15s;
   }
   .linkcard:hover { border-color: var(--muted); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
   .linkcard .accent { width: 4px; flex: none; }
-  .linkcard.stay .accent { background: var(--stay); }
-  .linkcard.surf .accent { background: var(--surf); }
-  .linkcard.food .accent { background: var(--food); }
-  .linkcard.adv  .accent { background: var(--adv); }
-  .linkcard .thumb {
-    width: 52px; flex: none; background: var(--paper) center/cover no-repeat;
-    display: flex; align-items: center; justify-content: center;
-  }
+  .linkcard.stay .accent { background: var(--stay); } .linkcard.surf .accent { background: var(--surf); }
+  .linkcard.food .accent { background: var(--food); } .linkcard.adv .accent { background: var(--adv); }
+  .linkcard .thumb { width: 52px; flex: none; background: var(--paper) center/cover no-repeat; display: flex; align-items: center; justify-content: center; }
   .linkcard .thumb svg { width: 20px; height: 20px; }
-  .linkcard.stay .thumb svg { color: var(--stay); }
-  .linkcard.surf .thumb svg { color: var(--surf); }
-  .linkcard.food .thumb svg { color: var(--food); }
-  .linkcard.adv  .thumb svg { color: var(--adv); }
+  .linkcard.stay .thumb svg { color: var(--stay); } .linkcard.surf .thumb svg { color: var(--surf); }
+  .linkcard.food .thumb svg { color: var(--food); } .linkcard.adv .thumb svg { color: var(--adv); }
   .linkcard .meta { flex: 1; min-width: 0; padding: 7px 9px; display: flex; flex-direction: column; justify-content: center; }
   .linkcard .ltitle { font-size: 13px; font-weight: 600; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .linkcard .ldom { font-size: 11px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+  .linkcard .ldom { font-size: 11px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
   .linkcard .catlabel { font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; font-size: 10px; }
-  .linkcard.stay .catlabel { color: var(--stay); }
-  .linkcard.surf .catlabel { color: var(--surf); }
-  .linkcard.food .catlabel { color: var(--food); }
-  .linkcard.adv  .catlabel { color: var(--adv); }
+  .linkcard.stay .catlabel { color: var(--stay); } .linkcard.surf .catlabel { color: var(--surf); }
+  .linkcard.food .catlabel { color: var(--food); } .linkcard.adv .catlabel { color: var(--adv); }
+  .linkcard .lcost { font-weight: 800; color: var(--ink); }
+  .linkcard .lcost.off { opacity: .4; text-decoration: line-through; }
   .linkcard .x {
     position: absolute; top: 4px; right: 6px; font-size: 15px; font-weight: 700; line-height: 1;
     color: var(--muted); opacity: .55; cursor: pointer; padding: 2px 4px; border-radius: 5px; background: rgba(255,255,255,.7);
@@ -179,13 +177,13 @@
   .linkcard .x:hover { opacity: 1; color: var(--ink); }
   .linkcard.loading .ltitle { color: var(--muted); font-weight: 500; }
 
-  /* add-link row */
   .addrow { display: flex; gap: 5px; margin-top: 8px; align-items: center; }
   .addrow select, .addrow input {
     font: inherit; font-size: 12px; padding: 5px 6px; border: 1px solid var(--line);
     border-radius: 7px; background: var(--paper); color: var(--ink);
   }
-  .addrow input { flex: 1; min-width: 0; }
+  .addrow input.url { flex: 1; min-width: 0; }
+  .addrow input.lc { width: 58px; }
   .addrow .add { padding: 5px 9px; font-size: 12px; }
 
   .track.empty .stay, .track.empty .dot, .track.empty .line { display: none; }
@@ -200,18 +198,17 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   @media (max-width: 640px) {
+    .scenarios { grid-template-columns: 1fr; }
     .row { grid-template-columns: 1fr 64px 1fr; min-height: 84px; }
     .track { padding: 5px 3px; }
-    .track.left .stay { margin-right: 26px; }
-    .track.right .stay { margin-left: 26px; }
+    .track.left .stay { margin-right: 26px; } .track.right .stay { margin-left: 26px; }
     .track.left .line { right: 14px; } .track.left .dot { right: 8px; }
     .track.right .line { left: 14px; } .track.right .dot { left: 8px; }
     .daybox { margin: 4px 2px; } h1 { font-size: 21px; }
   }
-
   @media print {
     body { background: #fff; padding: 0; }
-    .controls, .tools, .addrow, .linkcard .x, .live, .print-hide { display: none !important; }
+    .controls, .tools, .addrow, .linkcard .x, .live, .scenarios, .print-hide { display: none !important; }
     .daybox, .stay { box-shadow: none; }
   }
 </style>
@@ -220,7 +217,7 @@
 <div class="wrap">
   <header>
     <h1>Asgard &amp; Asu — Trip Timeline</h1>
-    <p class="sub">Where we're each staying, night by night. The lines overlap where we're together.</p>
+    <p class="sub">Lombok, October. Where we're each staying, night by night, and what each option costs.</p>
   </header>
 
   <div class="controls">
@@ -239,6 +236,9 @@
       <button id="reset-btn">Clear all</button>
     </div>
   </div>
+
+  <div class="scenarios" id="scenarios"></div>
+  <div class="scen-note">Asgard's return option. Costs in USD (the Rinjani trek is quoted in USD). Flip options to weigh them up.</div>
 
   <div class="topbar">
     <div class="who-tag asgard left"><span class="mark round"></span>Asgard</div>
@@ -259,10 +259,37 @@
   const SB_URL = 'https://myffnovjpdnezazjxlhl.supabase.co';
   const SB_KEY = 'sb_publishable_bd8XYmhmv8mH83Hjx3oZiw_DArf5vk0';
   const CFG_K = '__config__';
+  const SEED_K = '__seeded_v1__';
+  const CUR = '$';
+  const BASE_END = '2026-10-18';   // the fork point: Asgard's planned fly-out
+
+  const SCEN = {
+    A: { name: 'Leave as planned', meta: 'Fly out Oct 18', end: '2026-10-18' },
+    B: { name: 'Island lap', meta: 'Loop the island, out ~21st', end: '2026-10-21' },
+    C: { name: 'Rinjani + west coast', meta: 'Summit trek, out ~24th', end: '2026-10-24' }
+  };
 
   const defaults = {
     asgard: { start: '2026-10-10', end: '2026-10-18' },
-    asu:    { start: '2026-10-10', end: '2026-10-26' }
+    asu:    { start: '2026-10-10', end: '2026-10-26' },
+    scenario: 'A'
+  };
+
+  // seeded plans for Asgard's extra days (keyed per scenario). cost in USD.
+  const SEED = {
+    B: {
+      '2026-10-19': { text: 'Island lap — east to Tetebatu (rice terraces, waterfalls)', cost: 45 },
+      '2026-10-20': { text: 'Lap — north coast, Senggigi / Sira beach', cost: 55 },
+      '2026-10-21': { text: 'Back south, fly out via Denpasar', cost: 60 }
+    },
+    C: {
+      '2026-10-19': { text: 'Rinjani Day 1 — Sembalun gate up to crater rim camp (Rinjani Dawn, group). $325 covers all 3 days.', cost: 325 },
+      '2026-10-20': { text: 'Rinjani Day 2 — summit 3726m, down to Segara Anak lake + hot springs', cost: 0 },
+      '2026-10-21': { text: 'Rinjani Day 3 — descend to Senaru, collect luggage', cost: 0 },
+      '2026-10-22': { text: 'Recover on the west coast — Senggigi', cost: 50 },
+      '2026-10-23': { text: 'Gili islands / west coast', cost: 55 },
+      '2026-10-24': { text: 'Back south, fly out via Denpasar', cost: 60 }
+    }
   };
 
   const CATS = {
@@ -272,29 +299,25 @@
     adv:  { label: 'Adventure', cls: 'adv', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 20 6-14 5 8 2-3 5 9z"/></svg>' }
   };
 
-  /* ---------- room (private shared link) ---------- */
-  function genRoom() {
-    const a = new Uint8Array(12); crypto.getRandomValues(a);
-    return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
-  }
+  /* ---------- room ---------- */
+  function genRoom() { const a = new Uint8Array(12); crypto.getRandomValues(a); return Array.from(a, b => b.toString(16).padStart(2, '0')).join(''); }
   let room = new URLSearchParams(location.search).get('r');
-  if (!room) {
-    room = genRoom();
-    const u = new URL(location.href); u.searchParams.set('r', room);
-    history.replaceState(null, '', u.toString());
-  }
+  if (!room) { room = genRoom(); const u = new URL(location.href); u.searchParams.set('r', room); history.replaceState(null, '', u.toString()); }
 
   /* ---------- state ---------- */
   let cfg = JSON.parse(JSON.stringify(defaults));
-  let notes = {};              // key -> {text, links}
-  const cells = {};            // key -> {ta, drawLinks}
+  let notes = {};
+  const cells = {};
   let sb = null;
 
   function entry(key) {
-    if (!notes[key] || typeof notes[key] !== 'object') notes[key] = { text: '', links: [] };
-    if (typeof notes[key].text !== 'string') notes[key].text = '';
-    if (!Array.isArray(notes[key].links)) notes[key].links = [];
-    return notes[key];
+    if (!notes[key] || typeof notes[key] !== 'object') notes[key] = {};
+    const n = notes[key];
+    if (typeof n.text !== 'string') n.text = '';
+    if (!Array.isArray(n.links)) n.links = [];
+    if (typeof n.cost !== 'number') n.cost = (n.cost === 0 ? 0 : null);
+    if (typeof n.costOn !== 'boolean') n.costOn = true;
+    return n;
   }
 
   /* ---------- date helpers ---------- */
@@ -305,27 +328,82 @@
   const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function present(ts, who) { return ts >= parse(cfg[who].start) && ts <= parse(cfg[who].end); }
 
-  /* ---------- persistence (Supabase) ---------- */
+  // Asgard's tail days (after BASE_END) are stored per-scenario so B and C don't collide.
+  function keyFor(who, iso, scen) {
+    if (who === 'asgard' && parse(iso) > parse(BASE_END)) return 'asgard|' + iso + '#' + (scen || cfg.scenario);
+    return who + '|' + iso;
+  }
+  function money(n) { return CUR + (Math.round(n * 100) / 100).toLocaleString('en-US'); }
+
+  /* ---------- persistence ---------- */
   const timers = {};
   function queueSaveCell(key) { clearTimeout(timers[key]); timers[key] = setTimeout(() => saveCell(key), 350); }
   function saveCell(key) {
     if (!sb) return;
-    sb.from('trip_timeline').upsert(
-      { room, k: key, v: notes[key], updated_at: new Date().toISOString() },
-      { onConflict: 'room,k' }
-    ).then(({ error }) => { if (error) console.warn('save cell', error); });
+    sb.from('trip_timeline').upsert({ room, k: key, v: notes[key], updated_at: new Date().toISOString() }, { onConflict: 'room,k' })
+      .then(({ error }) => { if (error) console.warn('save', error); });
   }
-  function saveCfgRow() {
+  function saveMeta(k, v) {
     if (!sb) return;
-    sb.from('trip_timeline').upsert(
-      { room, k: CFG_K, v: cfg, updated_at: new Date().toISOString() },
-      { onConflict: 'room,k' }
-    ).then(({ error }) => { if (error) console.warn('save cfg', error); });
+    sb.from('trip_timeline').upsert({ room, k, v, updated_at: new Date().toISOString() }, { onConflict: 'room,k' })
+      .then(({ error }) => { if (error) console.warn('meta', error); });
+  }
+  const saveCfgRow = () => saveMeta(CFG_K, cfg);
+
+  /* ---------- cost maths ---------- */
+  function tailCost(scen) {  // Asgard's extra-day cost for a scenario (days after BASE_END up to its end)
+    let sum = 0;
+    const end = parse(SCEN[scen].end);
+    for (let ts = parse(BASE_END) + DAY; ts <= end; ts += DAY) {
+      const n = notes['asgard|' + toISO(ts) + '#' + scen];
+      if (n && n.costOn && typeof n.cost === 'number') sum += n.cost;
+    }
+    return sum;
+  }
+  function boardTotal() {  // everything currently included on the active board
+    let asg = 0, asu = 0;
+    const axisEnd = Math.max(parse(cfg.asgard.end), parse(cfg.asu.end));
+    for (let ts = parse(cfg.asgard.start); ts <= axisEnd; ts += DAY) {
+      ['asgard','asu'].forEach(who => {
+        if (!present(ts, who)) return;
+        const n = notes[keyFor(who, toISO(ts))];
+        if (!n) return;
+        let c = (n.costOn && typeof n.cost === 'number') ? n.cost : 0;
+        (n.links || []).forEach(l => { if (l.costOn !== false && typeof l.cost === 'number') c += l.cost; });
+        if (who === 'asgard') asg += c; else asu += c;
+      });
+    }
+    return { asg, asu, total: asg + asu };
   }
 
   /* ---------- render ---------- */
+  function renderScenarios() {
+    const box = document.getElementById('scenarios');
+    box.innerHTML = '';
+    ['A','B','C'].forEach(s => {
+      const extra = tailCost(s);
+      const days = Math.round((parse(SCEN[s].end) - parse(BASE_END)) / DAY);
+      const el = document.createElement('button');
+      el.className = 'scen' + (cfg.scenario === s ? ' active' : '');
+      el.innerHTML =
+        '<span class="tag">Option ' + s + (days ? ' · +' + days + ' days' : '') + '</span>' +
+        '<span class="name">' + SCEN[s].name + '</span>' +
+        '<span class="meta">' + SCEN[s].meta + '</span>' +
+        '<span class="cost">' + (extra ? '+' + money(extra) + ' extra' : 'baseline') + '</span>';
+      el.addEventListener('click', () => setScenario(s));
+      box.appendChild(el);
+    });
+  }
+
+  function setScenario(s) {
+    cfg.scenario = s;
+    cfg.asgard.end = SCEN[s].end;
+    saveCfgRow(); syncInputs(); render();
+  }
+
   function render() {
     Object.keys(cells).forEach(k => delete cells[k]);
+    renderScenarios();
     const axisStart = Math.min(parse(cfg.asgard.start), parse(cfg.asu.start));
     const axisEnd   = Math.max(parse(cfg.asgard.end),   parse(cfg.asu.end));
     const tl = document.getElementById('timeline');
@@ -350,10 +428,13 @@
       tl.appendChild(row);
     }
     const fmt = (iso) => { const p = iso.split('-'); return parseInt(p[2],10) + ' ' + MON[parseInt(p[1],10)-1]; };
+    const t = boardTotal();
     document.getElementById('summary').innerHTML =
       'Asgard ' + fmt(cfg.asgard.start) + '&ndash;' + fmt(cfg.asgard.end) +
       ' &nbsp;·&nbsp; Asu ' + fmt(cfg.asu.start) + '&ndash;' + fmt(cfg.asu.end) +
-      '<br><b>' + togetherDays + ' days together</b>';
+      '<br><b>' + togetherDays + ' days together</b>' +
+      '<br><span class="total">Option ' + cfg.scenario + ': ' + money(t.total) + '</span>' +
+      ' <span style="color:var(--muted)">(Asgard ' + money(t.asg) + ' · Asu ' + money(t.asu) + ')</span>';
   }
 
   function track(who, side, ts, isPresent) {
@@ -369,15 +450,49 @@
     const line = document.createElement('div'); line.className = 'line';
     const dot = document.createElement('div'); dot.className = 'dot';
     const stay = document.createElement('div'); stay.className = 'stay';
-    const key = who + '|' + toISO(ts);
+    const key = keyFor(who, toISO(ts));
     const data = entry(key);
 
     const label = document.createElement('div'); label.className = 'nite';
-    label.textContent = (who === 'asgard' ? 'Asgard' : 'Asu') + ' stays';
+    const labelText = document.createElement('span');
+    labelText.textContent = (who === 'asgard' ? 'Asgard' : 'Asu') + ' stays';
+    label.appendChild(labelText);
+    const otherWho = who === 'asgard' ? 'asu' : 'asgard';
+    if (present(ts, otherWho)) {
+      const mir = document.createElement('button'); mir.type = 'button'; mir.className = 'mirror';
+      mir.textContent = 'same as ' + (otherWho === 'asgard' ? 'Asgard' : 'Asu');
+      mir.title = "Copy " + (otherWho === 'asgard' ? 'Asgard' : 'Asu') + "'s plan for this day";
+      mir.addEventListener('click', (e) => {
+        e.preventDefault();
+        const src = notes[keyFor(otherWho, toISO(ts))];
+        if (!src || (!src.text && !(src.links || []).length && typeof src.cost !== 'number')) { toast('Nothing to copy for that day yet'); return; }
+        data.text = src.text || '';
+        data.cost = (typeof src.cost === 'number') ? src.cost : null;
+        data.costOn = src.costOn !== false;
+        data.links = JSON.parse(JSON.stringify(src.links || []));
+        saveCell(key); render();
+      });
+      label.appendChild(mir);
+    }
 
     const ta = document.createElement('textarea');
     ta.rows = 1; ta.placeholder = 'Where staying…'; ta.value = data.text || '';
     ta.addEventListener('input', () => { data.text = ta.value; autosize(ta); queueSaveCell(key); });
+
+    // cost row
+    const costrow = document.createElement('div'); costrow.className = 'costrow' + (data.costOn ? '' : ' off');
+    const cur = document.createElement('span'); cur.className = 'cur'; cur.textContent = CUR;
+    const cost = document.createElement('input'); cost.type = 'number'; cost.className = 'cost'; cost.placeholder = 'cost'; cost.min = '0';
+    cost.value = (typeof data.cost === 'number') ? data.cost : '';
+    cost.addEventListener('input', () => {
+      data.cost = cost.value === '' ? null : parseFloat(cost.value);
+      queueSaveCell(key); refreshTotals();
+    });
+    const inc = document.createElement('label'); inc.className = 'inc';
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = data.costOn;
+    cb.addEventListener('change', () => { data.costOn = cb.checked; costrow.classList.toggle('off', !cb.checked); saveCell(key); refreshTotals(); });
+    inc.appendChild(cb); inc.appendChild(document.createTextNode('count'));
+    costrow.appendChild(cur); costrow.appendChild(cost); costrow.appendChild(inc);
 
     const chips = document.createElement('div'); chips.className = 'chips';
     function drawLinks() {
@@ -387,25 +502,26 @@
         const a = document.createElement('a');
         a.className = 'linkcard ' + c.cls + (lnk.fetched ? '' : ' loading');
         a.href = lnk.url; a.target = '_blank'; a.rel = 'noopener'; a.title = lnk.url;
-
         const accent = document.createElement('div'); accent.className = 'accent';
         const thumb = document.createElement('div'); thumb.className = 'thumb';
-        if (lnk.image) thumb.style.backgroundImage = 'url("' + lnk.image.replace(/"/g,'%22') + '")';
-        else thumb.innerHTML = c.icon;
-
+        if (lnk.image) thumb.style.backgroundImage = 'url("' + lnk.image.replace(/"/g,'%22') + '")'; else thumb.innerHTML = c.icon;
         const meta = document.createElement('div'); meta.className = 'meta';
         const title = document.createElement('div'); title.className = 'ltitle';
         title.textContent = lnk.title || (lnk.fetched ? hostname(lnk.url) : 'Loading preview…');
         const dom = document.createElement('div'); dom.className = 'ldom';
         dom.innerHTML = '<span class="catlabel">' + c.label + '</span><span>' + hostname(lnk.url) + '</span>';
+        if (typeof lnk.cost === 'number') {
+          const lc = document.createElement('span'); lc.className = 'lcost' + (lnk.costOn === false ? ' off' : '');
+          lc.textContent = money(lnk.cost);
+          lc.title = 'click to ' + (lnk.costOn === false ? 'count' : 'exclude') + ' this cost';
+          lc.addEventListener('click', (e) => { e.preventDefault(); lnk.costOn = !(lnk.costOn !== false); saveCell(key); drawLinks(); refreshTotals(); });
+          dom.appendChild(lc);
+        }
         meta.appendChild(title); meta.appendChild(dom);
-
         const x = document.createElement('span'); x.className = 'x'; x.textContent = '×';
-        x.addEventListener('click', (e) => { e.preventDefault(); data.links.splice(i,1); saveCell(key); drawLinks(); });
-
+        x.addEventListener('click', (e) => { e.preventDefault(); data.links.splice(i,1); saveCell(key); drawLinks(); refreshTotals(); });
         a.appendChild(accent); a.appendChild(thumb); a.appendChild(meta); a.appendChild(x);
         chips.appendChild(a);
-
         if (!lnk.fetched) fetchPreview(lnk, key, drawLinks);
       });
     }
@@ -414,33 +530,40 @@
     const addrow = document.createElement('div'); addrow.className = 'addrow';
     const sel = document.createElement('select');
     Object.keys(CATS).forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = CATS[k].label; sel.appendChild(o); });
-    const url = document.createElement('input'); url.type = 'url'; url.placeholder = 'paste a link…';
+    const url = document.createElement('input'); url.type = 'url'; url.className = 'url'; url.placeholder = 'paste a link…';
+    const lc = document.createElement('input'); lc.type = 'number'; lc.className = 'lc'; lc.placeholder = '$'; lc.min = '0';
     const add = document.createElement('button'); add.className = 'add'; add.textContent = 'Add';
     function addLink() {
       let v = url.value.trim(); if (!v) return;
       if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
-      data.links.push({ cat: sel.value, url: v, fetched: false }); saveCell(key); drawLinks(); url.value = '';
+      const obj = { cat: sel.value, url: v, fetched: false };
+      if (lc.value !== '') { obj.cost = parseFloat(lc.value); obj.costOn = true; }
+      data.links.push(obj); saveCell(key); drawLinks(); refreshTotals(); url.value = ''; lc.value = '';
     }
     add.addEventListener('click', addLink);
     url.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addLink(); } });
-    addrow.appendChild(sel); addrow.appendChild(url); addrow.appendChild(add);
+    addrow.appendChild(sel); addrow.appendChild(url); addrow.appendChild(lc); addrow.appendChild(add);
 
-    stay.appendChild(label); stay.appendChild(ta); stay.appendChild(chips); stay.appendChild(addrow);
+    stay.appendChild(label); stay.appendChild(ta); stay.appendChild(costrow); stay.appendChild(chips); stay.appendChild(addrow);
     t.appendChild(line); t.appendChild(dot); t.appendChild(stay);
-    cells[key] = { ta, drawLinks };
+    cells[key] = { ta, drawLinks, costInput: cost, costCb: cb, costrow };
     setTimeout(() => autosize(ta), 0);
     return t;
+  }
+
+  function refreshTotals() { renderScenarios(); updateSummaryTotals(); }
+  function updateSummaryTotals() {
+    const el = document.querySelector('#summary .total');
+    if (!el) return;
+    const t = boardTotal();
+    el.textContent = 'Option ' + cfg.scenario + ': ' + money(t.total);
+    el.nextSibling && (el.nextSibling.textContent = ' (Asgard ' + money(t.asg) + ' · Asu ' + money(t.asu) + ')');
   }
 
   function fetchPreview(lnk, key, done) {
     fetch('https://api.microlink.io/?url=' + encodeURIComponent(lnk.url))
       .then(r => r.json())
-      .then(res => {
-        if (res && res.status === 'success' && res.data) {
-          lnk.title = res.data.title || '';
-          lnk.image = (res.data.image && res.data.image.url) || (res.data.logo && res.data.logo.url) || '';
-        }
-      })
+      .then(res => { if (res && res.status === 'success' && res.data) { lnk.title = res.data.title || ''; lnk.image = (res.data.image && res.data.image.url) || (res.data.logo && res.data.logo.url) || ''; } })
       .catch(() => {})
       .finally(() => { lnk.fetched = true; saveCell(key); done(); });
   }
@@ -459,9 +582,7 @@
   function bindDate(el, who, field) {
     el.addEventListener('change', () => {
       cfg[who][field] = el.value;
-      if (parse(cfg[who].start) > parse(cfg[who].end)) {
-        if (field === 'start') cfg[who].end = cfg[who].start; else cfg[who].start = cfg[who].end;
-      }
+      if (parse(cfg[who].start) > parse(cfg[who].end)) { if (field === 'start') cfg[who].end = cfg[who].start; else cfg[who].start = cfg[who].end; }
       saveCfgRow(); syncInputs(); render();
     });
   }
@@ -480,15 +601,16 @@
       const name = who === 'asgard' ? 'Asgard' : 'Asu';
       const s = parse(cfg[who].start), e = parse(cfg[who].end);
       for (let ts = s; ts <= e; ts += DAY) {
-        const d = notes[who + '|' + toISO(ts)];
+        const d = notes[keyFor(who, toISO(ts))];
         if (!d) continue;
         const text = (d.text || '').trim();
         const links = Array.isArray(d.links) ? d.links : [];
         if (!text && !links.length) continue;
         count++;
-        const desc = links.map(l => (CATS[l.cat] ? CATS[l.cat].label : 'Link') + ': ' + l.url).join('\n');
+        let desc = links.map(l => (CATS[l.cat] ? CATS[l.cat].label : 'Link') + ': ' + l.url).join('\n');
+        if (typeof d.cost === 'number' && d.cost > 0) desc = (desc ? desc + '\n' : '') + 'Cost: ' + money(d.cost);
         lines.push('BEGIN:VEVENT');
-        lines.push('UID:' + who + '-' + stamp(ts) + '@asgard-asu-trip');
+        lines.push('UID:' + who + '-' + stamp(ts) + '-' + cfg.scenario + '@asgard-asu-trip');
         lines.push('DTSTAMP:' + stamp(s) + 'T000000Z');
         lines.push('DTSTART;VALUE=DATE:' + stamp(ts));
         lines.push('DTEND;VALUE=DATE:' + stamp(ts + DAY));
@@ -501,17 +623,14 @@
     lines.push('END:VCALENDAR');
     if (!count) { toast('Nothing to export yet — add some stays first.'); return; }
     const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'asgard-asu-trip.ics';
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'asgard-asu-trip.ics';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
   /* ---------- buttons ---------- */
   function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg; el.classList.add('show');
+    const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
     clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), 2200);
   }
   document.getElementById('share-btn').addEventListener('click', () => {
@@ -522,58 +641,66 @@
   document.getElementById('ics-btn').addEventListener('click', exportICS);
   document.getElementById('print-btn').addEventListener('click', () => window.print());
   document.getElementById('reset-btn').addEventListener('click', () => {
-    if (!confirm('Clear every note and link for both of you? Dates stay as they are.')) return;
+    if (!confirm('Clear every note, link and cost for both of you? Dates and options stay.')) return;
     notes = {};
-    if (sb) sb.from('trip_timeline').delete().eq('room', room).neq('k', CFG_K).then(() => {});
+    if (sb) sb.from('trip_timeline').delete().eq('room', room).neq('k', CFG_K).neq('k', SEED_K).then(() => {});
     render();
   });
 
   /* ---------- realtime ---------- */
-  function setLive(on, text) {
-    const el = document.getElementById('live');
-    el.classList.toggle('on', !!on);
-    document.getElementById('live-text').textContent = text;
-  }
+  function setLive(on, text) { const el = document.getElementById('live'); el.classList.toggle('on', !!on); document.getElementById('live-text').textContent = text; }
   function applyRemote(k, v) {
     const cur = entry(k);
-    cur.text = (v && v.text) || '';
-    cur.links = Array.isArray(v && v.links) ? v.links : [];
+    cur.text = (v && v.text) || ''; cur.links = Array.isArray(v && v.links) ? v.links : [];
+    cur.cost = (v && typeof v.cost === 'number') ? v.cost : null; cur.costOn = !(v && v.costOn === false);
     const cell = cells[k];
     if (cell) {
       if (document.activeElement !== cell.ta) { cell.ta.value = cur.text; autosize(cell.ta); }
+      if (document.activeElement !== cell.costInput) { cell.costInput.value = (typeof cur.cost === 'number') ? cur.cost : ''; }
+      cell.costCb.checked = cur.costOn; cell.costrow.classList.toggle('off', !cur.costOn);
       cell.drawLinks();
     }
+    refreshTotals();
   }
-  function removeRemote(k) {
-    delete notes[k];
-    const cell = cells[k];
-    if (cell) { if (document.activeElement !== cell.ta) cell.ta.value = ''; cell.drawLinks && (entry(k), cell.drawLinks()); }
-  }
+  function removeRemote(k) { delete notes[k]; const cell = cells[k]; if (cell) render(); refreshTotals(); }
 
   async function start() {
-    try {
-      sb = window.supabase.createClient(SB_URL, SB_KEY, { realtime: { params: { eventsPerSecond: 5 } } });
-    } catch (e) { setLive(false, 'offline'); render(); return; }
+    try { sb = window.supabase.createClient(SB_URL, SB_KEY, { realtime: { params: { eventsPerSecond: 5 } } }); }
+    catch (e) { setLive(false, 'offline'); render(); return; }
 
-    // initial load
     const { data, error } = await sb.from('trip_timeline').select('k,v').eq('room', room);
     if (error) { console.warn(error); setLive(false, 'offline'); render(); return; }
-    let hasCfg = false;
+    let hasCfg = false, hasSeed = false;
     (data || []).forEach(r => {
       if (r.k === CFG_K) { cfg = Object.assign(JSON.parse(JSON.stringify(defaults)), r.v || {}); hasCfg = true; }
-      else notes[r.k] = { text: (r.v && r.v.text) || '', links: Array.isArray(r.v && r.v.links) ? r.v.links : [] };
+      else if (r.k === SEED_K) { hasSeed = true; }
+      else notes[r.k] = r.v || {};
     });
-    syncInputs(); render();
-    if (!hasCfg) saveCfgRow(); // seed a brand-new room
+    if (!cfg.scenario) cfg.scenario = 'A';
+    cfg.asgard.end = SCEN[cfg.scenario] ? SCEN[cfg.scenario].end : cfg.asgard.end;
 
-    // live subscription
+    // seed the option plans once per room
+    if (!hasSeed) {
+      ['B','C'].forEach(scen => {
+        Object.keys(SEED[scen]).forEach(iso => {
+          const k = 'asgard|' + iso + '#' + scen;
+          if (!notes[k]) { notes[k] = { text: SEED[scen][iso].text, cost: SEED[scen][iso].cost, costOn: true, links: [] }; saveCell(k); }
+        });
+      });
+      saveMeta(SEED_K, { at: new Date().toISOString() });
+    }
+
+    syncInputs(); render();
+    if (!hasCfg) saveCfgRow();
+
     sb.channel('trip-' + room)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trip_timeline', filter: 'room=eq.' + room }, (payload) => {
         const row = payload.new && payload.new.k ? payload.new : payload.old;
         if (!row) return;
         const k = row.k;
-        if (payload.eventType === 'DELETE') { if (k !== CFG_K) removeRemote(k); return; }
-        if (k === CFG_K) { cfg = Object.assign(JSON.parse(JSON.stringify(defaults)), row.v || {}); syncInputs(); render(); return; }
+        if (payload.eventType === 'DELETE') { if (k !== CFG_K && k !== SEED_K) removeRemote(k); return; }
+        if (k === SEED_K) return;
+        if (k === CFG_K) { cfg = Object.assign(JSON.parse(JSON.stringify(defaults)), row.v || {}); if (SCEN[cfg.scenario]) cfg.asgard.end = SCEN[cfg.scenario].end; syncInputs(); render(); return; }
         applyRemote(k, row.v);
       })
       .subscribe((status) => {
